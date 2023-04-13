@@ -1,7 +1,5 @@
 package main
 
-	
-
 import (
 	"fmt"
 	"io"
@@ -29,7 +27,7 @@ func request(id int, url string) {
 }
 
 func readFile(){
-	dat, err := os.ReadFile("./wordlist.txt")
+    dat, err := os.ReadFile("./wordlist.txt")
     if err != nil {
 
     }
@@ -51,18 +49,12 @@ func readFile(){
     }
 }
 
-//func worker(done chan bool) {
-//    fmt.Print("working...")
-//    time.Sleep(time.Second)
-//    fmt.Println("done")
-//    done <- true
-//}
-func worker(id int, wordChan chan string, doneChan chan bool) {
+func worker(id int, wordChan chan string, doneChan chan bool, int port) {
     out:
     for {
         select {
             case url := <-wordChan:
-            url = fmt.Sprintf("https://emile.space/%s", url)
+            url = fmt.Sprintf("http://127.0.0.1:%d/%s",port, url)
             request(id, url)
             case <-time.After(3 * time.Second):
             fmt.Printf("worker %d couldn't get a new url after 3 seconds,quitting\n", id)
@@ -83,7 +75,7 @@ func main() {
 	wordChan := make(chan string, 10)
 	doneChan := make(chan bool, 4)
 	for i := 1; i < 4; i++ {
-	    go worker(i, wordChan, doneChan)
+	    go worker(i, wordChan, doneChan, 80)
 	}
 	// fill word channel with all the words we want to fuzz
 	fmt.Println("Filling wordChan")
@@ -95,20 +87,3 @@ func main() {
 	    <-doneChan
 	}
 }
-
-
-//func main() {
-//    fmt.Println("hello world")
-    //readFile()
-    //resp, err := http.Get("http://example.com")
-    //defer resp.Body.Close()
-    //if err != nil {
-
-    //}
-
-//    body, err := io.ReadAll(resp.Body)
-//    if err != nil {
-//
-//    }
-//    fmt.Println(string(body))
-//}
